@@ -15,7 +15,8 @@ import time
 import sys
 from message import Msg
 
-path="/Users/zhasm/git/duanzi"
+path="/home/zhasm/cron/duanzi"
+
 idfile="%s/id.txt" % path
 logfile="%s/log.txt" % path
 
@@ -68,9 +69,11 @@ class Fanfou:
         c.setopt(c.WRITEFUNCTION, self.output.write)
         c.perform()
         if not self.get()=='ok':
+            print self.get()
             print "Error Init Fanfou CURL "
             exit()
         self.curl=c
+
     def get(self):
         value=self.output.getvalue()
         value=value.replace("false", "False")
@@ -122,13 +125,13 @@ class Fanfou:
         self.output.truncate(0)
         c.perform()
 
-    def reply(self, msg):
+    def reply(self, m):
         '''msg is a Msg object'''
         url=api['reply']
-        m=msg.get_msg()
         data={
             'status':"%s --@%s" % (m['text'], m['name']),
             'in_reply_to_status_id':m['id'],
+            'source':'shenliutang',
         }
         self.update(data)
 def loadID():
@@ -153,10 +156,12 @@ def log(s):
 
 def main():
 
-    fanfou=Fanfou("tar_gz", "********")
+    fanfou=Fanfou("tar_gz", "$tar_gz$")
+#    fanfou=Fanfou("debug", "debug")
     id=loadID()
     saved=0
     page=1
+    result={}
 
     while 1:
         msgs=fanfou.get_msg("reply", since_id=id, page=page)
@@ -167,10 +172,14 @@ def main():
         for m in msgs:
             m=Msg(m)
             m=m.get_msg()
+            result[m['id']]=m
+
             if not saved:
                 saveID(m['id'])
                 print "id saved as ", m['id']
-                saved=1
-            fanfou.reply(m)
+                saved=1 
+
+    for k,v  in result.items():
+        fanfou.reply(v)
 
 main()

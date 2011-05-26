@@ -50,7 +50,7 @@ class Msg:
             return {
                 'id':self.id,
                 'userid':self.userid,
-                'text':self.text,
+                'text':self.text.split(" ", 1)[1],
                 'at':self.at,
                 'name':self.username,
             }
